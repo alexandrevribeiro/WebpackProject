@@ -14,7 +14,11 @@ module.exports = {
   },
   output: {
     path: path.join(__dirname, 'dist'),
-    filename: '[name].js'
+
+    // Web browsers only updates their cache for the downloaded files when
+    // the file name changes. Thus the bundle name is configured to also have
+    // the "chunkhash", which is the hash of the content of the bundle file.
+    filename: '[name].[chunkhash].js'
   },
   module: {
     rules: [
@@ -41,7 +45,16 @@ module.exports = {
     // dependencies structures that are identical, it will pull them out and only 
     // add them to the entry point specified below (vendor).
     new webpack.optimize.CommonsChunkPlugin({
-      name: 'vendor'
+      // name: 'vendor'
+      
+      // Webpack keeps track of the splitted code chunks by generating 
+      // "chunkhash mappings". But it also brings an issue, which is this 
+      // that those "chunkhash maps" are put inside the entry chunk, in 
+      // our case it is inside the vendor file. To solve this, it's specified
+      // another file to the "CommonsChunkPlugin" that will extract the 
+      // chunkhash mappings into this file (manifest.js).
+      // FOR MORE DETAILS look the explanation in the end of this file.
+      names: ['vendor', 'manifest']
     }),
 
     // Plugin responsible for creating an HTML file (based on the specified template),
@@ -51,3 +64,38 @@ module.exports = {
     })
   ]
 };
+
+
+
+/**
+
+# Explanation about Browser cache
+
+The goal is long term caching via code splitting. What this is 
+saying is that when you run a build and split the vendor from 
+your app files, the vendor files rarely get updated relative to 
+your app files. And when you app is loaded in the browser, the 
+browser is going to cache those files. In this way, you can apply 
+changes to your app files without impacting the vendor files.
+The next time the browser loads your app, it will see that it has 
+cached the vendor file so it won't make another HTTP request. 
+It will only request the changes from your app files.
+
+Knowing that this is what we want to take advantage of, how does 
+Webpack keep track of this code splitting? Essentially, there has 
+to be a way to keep track of the chunks and webpack does this by 
+generating chunkhash mappings. The issue is that this chunkhash map 
+is put inside the entry chunk. In our case it is inside the vendor file.
+So every time we update our app this mapping is updated and inserted into 
+the vendor file. We can't take advantage of long-term caching with this 
+setup. To solve this issue we are simply adding another file to the 
+CommonsChunkPlugin that will extract the chunkhash mappings into their own 
+file (manifest.js). In this case the vendor.js doesn't change. "manifest.js ""
+has the webpack runtime chunkhash mapping.
+
+So resource:
+https://medium.com/@okonetchnikov/long-term-caching-of-static-assets-with-webpack-1ecb139adb95
+https://github.com/webpack/webpack/tree/master/examples/chunkhash
+https://webpack.js.org/guides/code-splitting/
+https://survivejs.com/webpack/building/bundle-splitting/
+ */
