@@ -1,11 +1,19 @@
 var webpack = require('webpack');
 var path = require('path');
 
+const VENDOR_LIBS = [
+  'faker', 'lodash', 'react', 'react-dom', 'react-input-range', 
+  'react-redux', 'react-router', 'redux', 'redux-form', 'redux-thunk'
+];
+
 module.exports = {
-  entry: './src/index.js',
+  entry: {
+    bundle: './src/index.js',
+    vendor: VENDOR_LIBS
+  },
   output: {
     path: path.join(__dirname, 'dist'),
-    filename: 'bundle.js'
+    filename: '[name].js'
   },
   module: {
     rules: [
@@ -24,5 +32,15 @@ module.exports = {
         test: /\.css$/
       }
     ]
-  }
+  },
+  plugins: [
+    // Plugin to solve the issue of double-including the files in both bundles.
+    // It tells Webpack to look at the total sum of the files in both 
+    // "bundle" and "vendor" entry points, and for all modules included in the
+    // dependencies structures that are identical, it will pull them out and only 
+    // add them to the entry point specified below (vendor).
+    new webpack.optimize.CommonsChunkPlugin({
+      name: 'vendor'
+    })
+  ]
 };
