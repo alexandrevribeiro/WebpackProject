@@ -63,6 +63,10 @@ module.exports = {
       template: 'src/index.html'
     }),
 
+    // There are a lot of libraries that make use of "NODE_ENV" (through
+    // the window scoped variable "process.env.NODE_ENV"). Thus, the 
+    // "DefinePlugin" is used to make this variable available in the
+    // Window scope defined within the generated bundle.js file.
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV)
     })
