@@ -7,9 +7,10 @@
     "clean": "rimraf dist",
     "build": "npm run clean && webpack",
     "build-prod": "cross-env NODE_ENV=production npm run clean && webpack -p",
-    "serve": "webpack-dev-server"
+    "serve": "webpack-dev-server",
+    "git-deploy": "npm run build-prod && git subtree push --prefix dist origin gh-pages"
   },
-  "repository": "https://github.com/StephenGrider/WebpackProject",
+  "repository": "https://github.com/alexandrevribeiro/WebpackProject",
   "author": "",
   "license": "ISC",
   "dependencies": {
